@@ -1,0 +1,87 @@
+// Datasource
+ datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Generator
+ generator client {
+  provider = "prisma-client-js"
+}
+
+// Enums
+ enum UserRole {
+  CITIZEN
+  ADMIN
+  NGO
+}
+
+enum ComplaintStatus {
+  PENDING
+  ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+// Models
+ model User {
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  passwordHash  String
+  phone         String?
+  address       String?
+  role          UserRole    @default(CITIZEN)
+  complaints    Complaint[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+ }
+
+ model Complaint {
+  id             String           @id @default(cuid())
+  complaintId    String           @unique // human-readable identifier like CR2024XXXX
+  title          String
+  description    String
+  category       String
+  priority       String
+  status         ComplaintStatus  @default(PENDING)
+  latitude       Float?
+  longitude      Float?
+  address        String?
+  imageUrl       String?
+  reportedBy     User             @relation(fields: [reportedById], references: [id])
+  reportedById   String
+  assignedDept   String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@index([reportedById])
+ }
+
+// Separate Admin table with potential admin-specific attributes
+model Admin {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  phone         String?
+  department    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// NGO / Volunteer accounts with service area to discover relevant complaints
+model NgoVolunteer {
+  id            String   @id @default(cuid())
+  name          String
+  organization  String?
+  email         String   @unique
+  passwordHash  String
+  phone         String?
+  serviceArea   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
