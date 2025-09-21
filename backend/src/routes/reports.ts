@@ -105,6 +105,22 @@ reportsRouter.get(
   async (_req: any, res) => {
     try {
       const reports = await prisma.complaint.findMany({
+        include: {
+          helpers: {
+            include: {
+              ngo: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
+                  organization: true,
+                  serviceArea: true
+                }
+              }
+            }
+          }
+        },
         orderBy: { createdAt: "desc" },
       });
       return res.json(reports);

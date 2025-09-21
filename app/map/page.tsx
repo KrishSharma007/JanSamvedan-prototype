@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import {
   Eye,
   Calendar,
 } from "lucide-react";
+import { LeafletMapWithMarkers } from "@/components/leaflet-map-with-markers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
 
@@ -79,11 +80,11 @@ export default function CityMapPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [mapView, setMapView] = useState<"normal">("normal");
+  const [mapView, setMapView] = useState<"normal" | "satellite" | "terrain">("normal");
   const [reports, setReports] = useState<ApiReport[]>([]);
   const [loading, setLoading] = useState(true);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<ApiReport | null>(null);
+  const [trackReportId, setTrackReportId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -106,124 +107,68 @@ export default function CityMapPage() {
       }
     }
     loadReports();
+
+    // Check if we're tracking a specific report
+    const trackId = localStorage.getItem('trackReportId');
+    if (trackId) {
+      setTrackReportId(trackId);
+      // Clear the tracking ID after reading it
+      localStorage.removeItem('trackReportId');
+    }
   }, [router]);
 
-  const clearMarkers = () => {
-    markersRef.current.forEach((m) => {
-      try {
-        if (m && m.remove) m.remove();
-        else if (m && m.setMap) m.setMap(null);
-      } catch {}
-    });
-    markersRef.current = [];
-    closeAnyPopups();
+  // Filter reports based on current filters
+  const filteredReports = reports.filter((r) => {
+    // If tracking a specific report, only show that report
+    if (trackReportId && r.id !== trackReportId) return false;
+    
+    // Exclude resolved complaints from city map (unless tracking specific report)
+    if (r.status === "RESOLVED" && !trackReportId) return false;
+
+    const cat =
+      categoryFilter === "all" ||
+      (r.category || "").toLowerCase().includes(categoryFilter);
+    const st =
+      statusFilter === "all" || r.status === statusFilter.toUpperCase();
+    const srch =
+      !searchTerm ||
+      (r.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (r.address || "").toLowerCase().includes(searchTerm.toLowerCase());
+    return cat && st && srch;
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "RESOLVED": return "#22c55e";
+      case "IN_PROGRESS": return "#3b82f6";
+      case "ASSIGNED": return "#eab308";
+      case "PENDING": return "#ef4444";
+      default: return "#6b7280";
+    }
   };
 
-  const renderMarkers = () => {
-    const w = window as any;
-    if (!mapRef.current || !w.mappls) return;
-    clearMarkers();
+  // Convert reports to markers for the map
+  const mapMarkers = filteredReports
+    .filter(r => r.latitude != null && r.longitude != null)
+    .map(r => ({
+      id: r.id,
+      latitude: r.latitude!,
+      longitude: r.longitude!,
+      title: r.title,
+      category: r.category,
+      status: r.status,
+      priority: r.priority,
+      address: r.address,
+      color: getStatusColor(r.status),
+      size: Math.max(16, priorityToSize(r.priority))
+    }));
 
-    const filtered = reports.filter((r) => {
-      // Exclude resolved complaints from city map
-      if (r.status === "RESOLVED") return false;
-
-      const cat =
-        categoryFilter === "all" ||
-        (r.category || "").toLowerCase().includes(categoryFilter);
-      const st =
-        statusFilter === "all" || r.status === statusFilter.toUpperCase();
-      const srch =
-        !searchTerm ||
-        (r.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (r.address || "").toLowerCase().includes(searchTerm.toLowerCase());
-      return cat && st && srch;
-    });
-
-    filtered.forEach((issue) => {
-      if (issue.latitude == null || issue.longitude == null) return;
-      const colorClass = statusToColorClass(issue.status);
-      const size = Math.max(14, priorityToSize(issue.priority));
-      const el = document.createElement("div");
-      el.style.width = `${size}px`;
-      el.style.height = `${size}px`;
-      el.style.borderRadius = "9999px";
-      el.style.border = "2px solid white";
-      el.style.boxShadow = "0 0 6px rgba(0,0,0,0.3)";
-      el.style.backgroundColor = colorClass.includes("green")
-        ? "#22c55e"
-        : colorClass.includes("blue")
-        ? "#3b82f6"
-        : colorClass.includes("yellow")
-        ? "#eab308"
-        : colorClass.includes("red")
-        ? "#ef4444"
-        : "#6b7280";
-      el.style.pointerEvents = "auto";
-      el.style.cursor = "pointer";
-      el.style.zIndex = "10000";
-      el.title = `${issue.category || "Issue"}: ${issue.title || ""}`;
-
-      const m = new (window as any).mappls.Marker({
-        map: mapRef.current,
-        position: { lat: issue.latitude, lng: issue.longitude },
-        element: el,
-      });
-      markersRef.current.push(m);
-    });
-
-    const first = filtered.find(
-      (r) => r.latitude != null && r.longitude != null
-    );
-    if (first)
-      mapRef.current.setCenter({ lat: first.latitude, lng: first.longitude });
-
-    // Close popups on map interactions
-    try {
-      mapRef.current.addListener("drag", closeAnyPopups);
-      mapRef.current.addListener("zoomend", closeAnyPopups);
-      mapRef.current.addListener("click", closeAnyPopups);
-    } catch {}
+  const handleMarkerClick = (marker: any) => {
+    const report = reports.find(r => r.id === marker.id);
+    if (report) {
+      setSelectedMarker(report);
+    }
   };
-
-  // Wait for SDK then init map
-  useEffect(() => {
-    const w = window as any;
-    if (mapRef.current || !w.mappls) return;
-
-    let n = 0;
-    const id = setInterval(() => {
-      if (w.mappls) {
-        try {
-          const defaultCenter = { lat: 28.6139, lng: 77.209 };
-          if (w.mappls.vectorMap) {
-            mapRef.current = w.mappls.vectorMap("mappls-container", {
-              center: defaultCenter,
-              zoom: 12,
-            });
-          } else if (w.mappls.Map) {
-            mapRef.current = new w.mappls.Map("mappls-container", {
-              center: defaultCenter,
-              zoom: 12,
-            });
-          }
-          clearInterval(id);
-          renderMarkers();
-        } catch {}
-      }
-      n += 1;
-      if (n > 50) clearInterval(id);
-    }, 100);
-
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Re-render markers on data/filter changes
-  useEffect(() => {
-    renderMarkers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryFilter, statusFilter, searchTerm, reports]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5">
@@ -237,6 +182,23 @@ export default function CityMapPage() {
             <p className="text-muted-foreground mb-6">
               Interactive civic issues map
             </p>
+
+            {/* Tracking notification */}
+            {trackReportId && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  📍 Tracking specific report. Only this report is shown on the map.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setTrackReportId(null)}
+                >
+                  Show All Reports
+                </Button>
+              </div>
+            )}
 
             {/* Filters */}
             <div className="space-y-4 mb-6">
@@ -290,14 +252,33 @@ export default function CityMapPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <Button
                   variant={mapView === "normal" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setMapView("normal")}
                   className="flex-1"
                 >
-                  Normal View
+                  <Layers className="h-4 w-4 mr-1" />
+                  Normal
+                </Button>
+                <Button
+                  variant={mapView === "satellite" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMapView("satellite")}
+                  className="flex-1"
+                >
+                  <Navigation className="h-4 w-4 mr-1" />
+                  Satellite
+                </Button>
+                <Button
+                  variant={mapView === "terrain" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMapView("terrain")}
+                  className="flex-1"
+                >
+                  <ZoomIn className="h-4 w-4 mr-1" />
+                  Terrain
                 </Button>
               </div>
             </div>
@@ -341,13 +322,20 @@ export default function CityMapPage() {
 
         {/* Map Area */}
         <div className="flex-1 relative">
-          {/* Map container */}
-          <div id="mappls-container" className="w-full h-full min-h-[500px]" />
-
-          {/* Attribution */}
-          <div className="absolute bottom-4 left-4 bg-background/80 px-2 py-1 rounded text-xs text-muted-foreground">
-            Map powered by Mappls (MapMyIndia)
-          </div>
+          <LeafletMapWithMarkers
+            latitude={28.6139}
+            longitude={77.209}
+            zoom={12}
+            markers={mapMarkers}
+            onMarkerClick={handleMarkerClick}
+            height="100%"
+            className="min-h-[500px]"
+            showAttribution={true}
+            focusOnMarker={trackReportId || undefined}
+            autoFitBounds={!trackReportId && mapMarkers.length > 0}
+            mapView={mapView}
+            onMapViewChange={setMapView}
+          />
         </div>
       </div>
     </div>

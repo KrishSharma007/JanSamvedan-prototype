@@ -6,7 +6,8 @@
 
 // Generator
  generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
 }
 
 // Enums
@@ -53,6 +54,7 @@ enum ComplaintStatus {
   reportedBy     User             @relation(fields: [reportedById], references: [id])
   reportedById   String
   assignedDept   String?
+  helpers        ComplaintHelper[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
@@ -75,13 +77,32 @@ model Admin {
 
 // NGO / Volunteer accounts with service area to discover relevant complaints
 model NgoVolunteer {
-  id            String   @id @default(cuid())
+  id            String             @id @default(cuid())
   name          String
   organization  String?
-  email         String   @unique
+  email         String             @unique
   passwordHash  String
   phone         String?
   serviceArea   String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  helpingWith   ComplaintHelper[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+// Track which NGOs/Volunteers are helping with which complaints
+model ComplaintHelper {
+  id            String        @id @default(cuid())
+  complaintId   String
+  ngoId         String
+  status        String        @default("HELPING") // HELPING, CONTACTED, DECLINED
+  message       String?       // Optional message from NGO
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  
+  complaint     Complaint     @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  ngo           NgoVolunteer  @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  
+  @@unique([complaintId, ngoId]) // Prevent duplicate helpers
+  @@index([complaintId])
+  @@index([ngoId])
 }

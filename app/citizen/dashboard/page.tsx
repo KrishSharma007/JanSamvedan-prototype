@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Eye } from "lucide-react";
+import { ReportDetailModal } from "@/components/report-detail-modal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
 
@@ -18,7 +19,11 @@ type Report = {
   priority: string;
   status: "PENDING" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
   address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  imageUrl?: string | null;
   createdAt: string;
+  updatedAt?: string;
 };
 
 function statusBadge(status: Report["status"]) {
@@ -43,6 +48,8 @@ export default function CitizenDashboard() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -64,6 +71,17 @@ export default function CitizenDashboard() {
     }
     load();
   }, [router]);
+
+  const handleViewDetails = (report: Report) => {
+    setSelectedReport(report);
+    setShowDetailModal(true);
+  };
+
+  const handleTrackOnMap = (report: Report) => {
+    // Store the report ID in localStorage for the map page to filter by
+    localStorage.setItem('trackReportId', report.id);
+    router.push('/map');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 py-8">
@@ -95,7 +113,7 @@ export default function CitizenDashboard() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {reports.map((report) => (
+            {reports.filter(report => report.status !== "RESOLVED").map((report) => (
               <Card
                 key={report.id}
                 className="hover:shadow-md transition-shadow"
@@ -141,12 +159,16 @@ export default function CitizenDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push("/map")}
+                        onClick={() => handleTrackOnMap(report)}
+                        disabled={!report.latitude || !report.longitude}
                       >
                         <MapPin className="h-4 w-4 mr-1" />
                         Track on Map
                       </Button>
-                      <Button size="sm">
+                      <Button 
+                        size="sm"
+                        onClick={() => handleViewDetails(report)}
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View Details
                       </Button>
@@ -157,6 +179,17 @@ export default function CitizenDashboard() {
             ))}
           </div>
         )}
+
+        {/* Report Detail Modal */}
+        <ReportDetailModal
+          report={selectedReport}
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedReport(null);
+          }}
+          onTrackOnMap={handleTrackOnMap}
+        />
       </div>
     </div>
   );

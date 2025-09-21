@@ -13,20 +13,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, Shield, Users } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [userType, setUserType] = useState<"citizen" | "admin">("citizen");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    adminCode: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -102,22 +99,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs
-            value={userType}
-            onValueChange={(value) => setUserType(value as "citizen" | "admin")}
-          >
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="citizen" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Citizen
-              </TabsTrigger>
-              <TabsTrigger value="admin" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Admin
-              </TabsTrigger>
-            </TabsList>
-
-            <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -170,26 +152,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {userType === "admin" && (
-                <div className="space-y-2">
-                  <Label htmlFor="adminCode">Admin Access Code</Label>
-                  <Input
-                    id="adminCode"
-                    type="password"
-                    placeholder="(not required if you have admin account)"
-                    value={formData.adminCode}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        adminCode: e.target.value,
-                      }))
-                    }
-                  />
-                  <p className="text-xs text-gray-500">
-                    Use admin email/password to sign in as admin.
-                  </p>
-                </div>
-              )}
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Signing in..." : "Sign In"}
@@ -207,7 +169,6 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
-          </Tabs>
         </CardContent>
       </Card>
     </div>

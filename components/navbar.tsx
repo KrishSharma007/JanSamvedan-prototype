@@ -69,15 +69,25 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-6">
             {user && (
               <div className="flex items-center space-x-2">
-                <Badge
-                  variant={roleName === "CITIZEN" ? "default" : "secondary"}
-                >
-                  <Users className="h-3 w-3 mr-1" />
-                  Citizen
-                </Badge>
-                <Badge variant={roleName === "ADMIN" ? "default" : "secondary"}>
-                  <Shield className="h-3 w-3 mr-1" />
-                  Admin
+                <Badge variant="default">
+                  {roleName === "CITIZEN" && (
+                    <>
+                      <Users className="h-3 w-3 mr-1" />
+                      Citizen
+                    </>
+                  )}
+                  {roleName === "ADMIN" && (
+                    <>
+                      <Shield className="h-3 w-3 mr-1" />
+                      Admin
+                    </>
+                  )}
+                  {roleName === "NGO" && (
+                    <>
+                      <Users className="h-3 w-3 mr-1" />
+                      NGO
+                    </>
+                  )}
                 </Badge>
               </div>
             )}

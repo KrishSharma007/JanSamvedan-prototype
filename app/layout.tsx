@@ -9,12 +9,7 @@ import { Suspense } from "react";
 import Script from "next/script";
 import "./globals.css";
 
-const MAPPLS_KEY = process.env.NEXT_PUBLIC_MAPPLS_KEY || "";
-
-// Debug: Log the API key (remove in production)
-if (typeof window === "undefined") {
-  console.log("MAPPLS_KEY in layout:", MAPPLS_KEY);
-}
+// MapPL integration removed - using Leaflet instead
 
 export const metadata: Metadata = {
   title: "CivicConnect - Smart Civic Issue Reporting",
@@ -31,32 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {MAPPLS_KEY && MAPPLS_KEY !== "" ? (
-          <>
-            <style
-              dangerouslySetInnerHTML={{
-                __html: `
-                #report-map-container,
-                #mappls-container,
-                #admin-mappls-container {
-                  width: 100%;
-                  height: 100%;
-                  min-height: 200px;
-                }
-              `,
-              }}
-            />
-            <Script
-              id="mappls-sdk"
-              src={`https://apis.mappls.com/advancedmaps/api/${MAPPLS_KEY}/map_sdk?layer=vector&v=3.0`}
-              strategy="beforeInteractive"
-            />
-          </>
-        ) : (
-          <div style={{ display: "none" }}>
-            {/* Fallback: No Mappls SDK loaded */}
-          </div>
-        )}
+        {/* MapPL integration removed - using Leaflet instead */}
       </head>
       <body
         className={`font-sans ${GeistSans.variable} ${GeistMono.variable} min-h-screen flex flex-col`}

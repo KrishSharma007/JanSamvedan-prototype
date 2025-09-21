@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   Clock,
 } from "lucide-react";
+import { LeafletMapWithMarkers } from "@/components/leaflet-map-with-markers";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
 type ApiReport = {
@@ -36,7 +37,7 @@ type ApiReport = {
 };
 
 export default function AdminMapPage() {
-  const [mapView, setMapView] = useState<"normal">("normal");
+  const [mapView, setMapView] = useState<"normal" | "satellite" | "terrain">("normal");
   const [timeFilter, setTimeFilter] = useState("today");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [stats, setStats] = useState<{
@@ -48,8 +49,8 @@ export default function AdminMapPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reports, setReports] = useState<ApiReport[]>([]);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<ApiReport | null>(null);
+  const [trackReportId, setTrackReportId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -86,74 +87,42 @@ export default function AdminMapPage() {
       }
     }
     load();
+
+    // Check if we're tracking a specific report
+    const trackId = localStorage.getItem('trackReportId');
+    if (trackId) {
+      setTrackReportId(trackId);
+      // Clear the tracking ID after reading it
+      localStorage.removeItem('trackReportId');
+    }
   }, []);
 
-  const clearMarkers = () => {
-    markersRef.current.forEach((m) => {
-      try {
-        if (m && m.remove) m.remove();
-        else if (m && m.setMap) m.setMap(null);
-      } catch {}
-    });
-    markersRef.current = [];
+  // Convert reports to markers for the map
+  const mapMarkers = reports
+    .filter(r => {
+      // If tracking a specific report, only show that report
+      if (trackReportId && r.id !== trackReportId) return false;
+      return r.latitude != null && r.longitude != null;
+    })
+    .map(r => ({
+      id: r.id,
+      latitude: r.latitude!,
+      longitude: r.longitude!,
+      title: r.title,
+      category: r.category,
+      status: r.status,
+      priority: r.priority,
+      address: r.address,
+      color: "#2563eb", // Admin map uses blue for all markers
+      size: 16
+    }));
+
+  const handleMarkerClick = (marker: any) => {
+    const report = reports.find(r => r.id === marker.id);
+    if (report) {
+      setSelectedMarker(report);
+    }
   };
-
-  const renderMarkers = () => {
-    if (!mapRef.current || !(window as any).mappls) return;
-    clearMarkers();
-    reports.forEach((r) => {
-      if (r.latitude == null || r.longitude == null) return;
-      const el = document.createElement("div");
-      el.style.width = "12px";
-      el.style.height = "12px";
-      el.style.borderRadius = "9999px";
-      el.style.border = "2px solid white";
-      el.style.backgroundColor = "#2563eb";
-      const m = new (window as any).mappls.Marker({
-        map: mapRef.current,
-        position: { lat: r.latitude, lng: r.longitude },
-        element: el,
-      });
-      markersRef.current.push(m);
-    });
-  };
-
-  // Initialize Mappls map in the main area
-  useEffect(() => {
-    const w = window as any;
-    if (mapRef.current || !w.mappls) return;
-    let n = 0;
-    const id = setInterval(() => {
-      if (w.mappls) {
-        try {
-          const center = { lat: 28.6139, lng: 77.209 };
-          if (w.mappls.vectorMap) {
-            mapRef.current = w.mappls.vectorMap("admin-mappls-container", {
-              center,
-              zoom: 12,
-            });
-          } else if (w.mappls.Map) {
-            mapRef.current = new w.mappls.Map("admin-mappls-container", {
-              center,
-              zoom: 12,
-            });
-          }
-          clearInterval(id);
-          renderMarkers();
-        } catch {}
-      }
-      n += 1;
-      if (n > 50) clearInterval(id);
-    }, 100);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Re-render markers when reports change
-  useEffect(() => {
-    renderMarkers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reports]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5">
@@ -167,6 +136,23 @@ export default function AdminMapPage() {
             <p className="text-muted-foreground mb-6">
               Real-time civic issues monitoring
             </p>
+
+            {/* Tracking notification */}
+            {trackReportId && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  📍 Tracking specific report. Only this report is shown on the map.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => setTrackReportId(null)}
+                >
+                  Show All Reports
+                </Button>
+              </div>
+            )}
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 gap-3 mb-6">
@@ -278,6 +264,40 @@ export default function AdminMapPage() {
               </CardContent>
             </Card>
 
+            {/* Map View Controls */}
+            <div className="space-y-2 mb-6">
+              <label className="text-sm font-medium">Map View</label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  variant={mapView === "normal" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMapView("normal")}
+                  className="flex-1"
+                >
+                  <Layers className="h-4 w-4 mr-1" />
+                  Normal
+                </Button>
+                <Button
+                  variant={mapView === "satellite" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMapView("satellite")}
+                  className="flex-1"
+                >
+                  <Navigation className="h-4 w-4 mr-1" />
+                  Satellite
+                </Button>
+                <Button
+                  variant={mapView === "terrain" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMapView("terrain")}
+                  className="flex-1"
+                >
+                  <ZoomIn className="h-4 w-4 mr-1" />
+                  Terrain
+                </Button>
+              </div>
+            </div>
+
             {/* Actions */}
             <div className="space-y-2">
               <Button className="w-full justify-start" size="sm">
@@ -306,8 +326,20 @@ export default function AdminMapPage() {
 
         {/* Admin Map Area */}
         <div className="flex-1 relative">
-          {/* Mappls Map */}
-          <div id="admin-mappls-container" className="w-full h-full" />
+          <LeafletMapWithMarkers
+            latitude={28.6139}
+            longitude={77.209}
+            zoom={12}
+            markers={mapMarkers}
+            onMarkerClick={handleMarkerClick}
+            height="100%"
+            className="min-h-[500px]"
+            showAttribution={true}
+            focusOnMarker={trackReportId || undefined}
+            autoFitBounds={!trackReportId && mapMarkers.length > 0}
+            mapView={mapView}
+            onMapViewChange={setMapView}
+          />
         </div>
       </div>
     </div>

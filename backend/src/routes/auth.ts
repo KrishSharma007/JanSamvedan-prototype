@@ -2,13 +2,14 @@ import { Router } from "express";
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { signJwt } from "../utils/jwt";
+import { authMiddleware } from "../middleware/auth";
 
 const prisma = new PrismaClient();
 export const authRouter = Router();
 
 authRouter.post("/register", async (req, res) => {
   try {
-    const { name, email, password, phone, address } = req.body || {};
+    const { name, email, password, phone, address, role, organization, serviceArea } = req.body || {};
     if (!name || !email || !password)
       return res.status(400).json({ error: "Missing required fields" });
 
@@ -17,6 +18,11 @@ authRouter.post("/register", async (req, res) => {
       return res.status(409).json({ error: "Email already in use" });
 
     const passwordHash = await bcrypt.hash(password, 10);
+    
+    // Determine user role
+    const userRole = role === "NGO" ? UserRole.NGO : UserRole.CITIZEN;
+    
+    // Create user with appropriate role
     const user = await prisma.user.create({
       data: {
         name,
@@ -24,10 +30,24 @@ authRouter.post("/register", async (req, res) => {
         passwordHash,
         phone,
         address,
-        role: UserRole.CITIZEN,
+        role: userRole,
       },
       select: { id: true, name: true, email: true, role: true },
     });
+
+    // If NGO, also create NGO volunteer record
+    if (userRole === UserRole.NGO) {
+      await prisma.ngoVolunteer.create({
+        data: {
+          name,
+          email,
+          passwordHash,
+          phone,
+          organization: organization || "",
+          serviceArea: serviceArea || "",
+        },
+      });
+    }
 
     const token = signJwt({ sub: user.id, role: user.role });
     return res.status(201).json({ token, user });

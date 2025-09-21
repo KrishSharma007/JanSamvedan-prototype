@@ -2,8 +2,9 @@
 
 import type React from "react";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LeafletMap } from "@/components/leaflet-map";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,9 +42,6 @@ export default function ReportIssuePage() {
   const [title, setTitle] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [showMap, setShowMap] = useState(false);
-  const [mapLoading, setMapLoading] = useState(false);
-  const mapRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -51,18 +49,6 @@ export default function ReportIssuePage() {
       router.replace("/login");
     }
   }, [router]);
-
-  // Wait for Mappls SDK to load
-  useEffect(() => {
-    const checkSDK = () => {
-      if ((window as any).mappls) {
-        console.log("Mappls SDK loaded");
-      } else {
-        setTimeout(checkSDK, 100);
-      }
-    };
-    checkSDK();
-  }, []);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -86,28 +72,6 @@ export default function ReportIssuePage() {
           setLocation(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
           setIsCapturingLocation(false);
           setShowMap(true);
-          setMapLoading(true);
-
-          // Wait for SDK to load with timeout
-          let attempts = 0;
-          const maxAttempts = 50;
-          const checkSDK = () => {
-            attempts++;
-            const w = window as any;
-            if (w.mappls && (w.mappls.vectorMap || w.mappls.Map)) {
-              initializeMap(latitude, longitude);
-              setMapLoading(false);
-            } else if (attempts < maxAttempts) {
-              setTimeout(checkSDK, 100);
-            } else {
-              console.error("Mappls SDK failed to load after maximum attempts");
-              setError(
-                "Map failed to load. Please refresh the page and try again."
-              );
-              setMapLoading(false);
-            }
-          };
-          checkSDK();
         },
         (error) => {
           console.error("Error getting location:", error);
@@ -121,130 +85,24 @@ export default function ReportIssuePage() {
     }
   };
 
-  const initializeMap = (lat: number, lng: number) => {
-    const w = window as any;
-    if (!w.mappls) {
-      console.warn("Mappls SDK not available, using fallback coordinate input");
-      setError("Map service unavailable. Please enter coordinates manually.");
-      setMapLoading(false);
-      return;
-    }
-
-    try {
-      // Try vectorMap first, then fallback to Map (same pattern as working city map)
-      if (w.mappls.vectorMap) {
-        console.log("Using mappls.vectorMap API");
-        mapRef.current = w.mappls.vectorMap("report-map-container", {
-          center: { lat, lng },
-          zoom: 15,
-        });
-      } else if (w.mappls.Map) {
-        console.log("Using mappls.Map API fallback");
-        mapRef.current = new w.mappls.Map("report-map-container", {
-          center: { lat, lng },
-          zoom: 15,
-        });
-      } else {
-        console.error("Mappls Map API not available");
-        setError("Map service unavailable. Please enter coordinates manually.");
-        setMapLoading(false);
-        return;
-      }
-
-      // Add marker
-      markerRef.current = new w.mappls.Marker({
-        map: mapRef.current,
-        position: { lat, lng },
-      });
-
-      // Add click listener to update marker position
-      mapRef.current.addListener("click", (event: any) => {
-        const newLat = event.latLng.lat();
-        const newLng = event.latLng.lng();
-
-        setLatitude(newLat);
-        setLongitude(newLng);
-        setLocation(`${newLat.toFixed(6)}, ${newLng.toFixed(6)}`);
-
-        // Update marker position
-        if (markerRef.current) {
-          markerRef.current.setPosition({ lat: newLat, lng: newLng });
-        }
-      });
-    } catch (error) {
-      console.error("Error initializing map:", error);
-      setError("Map failed to load. Please enter coordinates manually.");
-      setMapLoading(false);
+  const openMapSelector = () => {
+    setShowMap(true);
+    setError(""); // Clear any previous errors
+    
+    // Set default location (Delhi) if no location is set
+    if (!latitude || !longitude) {
+      const defaultLat = 28.6139;
+      const defaultLng = 77.209;
+      setLatitude(defaultLat);
+      setLongitude(defaultLng);
+      setLocation(`${defaultLat.toFixed(6)}, ${defaultLng.toFixed(6)}`);
     }
   };
 
-  const openMapSelector = () => {
-    setShowMap(true);
-    setMapLoading(true);
-    setError(""); // Clear any previous errors
-    // Initialize map with default location (Delhi)
-    const defaultLat = 28.6139;
-    const defaultLng = 77.209;
-    setLatitude(defaultLat);
-    setLongitude(defaultLng);
-    setLocation(`${defaultLat.toFixed(6)}, ${defaultLng.toFixed(6)}`);
-
-    // Debug: Check if SDK is already loaded
-    const w = window as any;
-    console.log("Checking Mappls SDK availability...");
-    console.log("window.mappls:", w.mappls);
-    console.log("MAPPLS_KEY:", process.env.NEXT_PUBLIC_MAPPLS_KEY);
-
-    // Try to load SDK manually if not available
-    if (!w.mappls) {
-      console.log("SDK not found, attempting to load manually...");
-      const script = document.createElement("script");
-      script.src = `https://apis.mappls.com/advancedmaps/api/${process.env.NEXT_PUBLIC_MAPPLS_KEY}/map_sdk?layer=vector&v=3.0`;
-      script.onload = () => {
-        console.log("SDK loaded manually, initializing map...");
-        setTimeout(() => {
-          if (w.mappls && (w.mappls.vectorMap || w.mappls.Map)) {
-            initializeMap(defaultLat, defaultLng);
-            setMapLoading(false);
-          } else {
-            setError(
-              "Map service unavailable. Please enter coordinates manually."
-            );
-            setMapLoading(false);
-          }
-        }, 1000);
-      };
-      script.onerror = () => {
-        console.error("Failed to load SDK manually");
-        setError("Map service unavailable. Please enter coordinates manually.");
-        setMapLoading(false);
-      };
-      document.head.appendChild(script);
-      return;
-    }
-
-    // Wait for SDK to load with timeout
-    let attempts = 0;
-    const maxAttempts = 100; // Increased attempts
-    const checkSDK = () => {
-      attempts++;
-      console.log(`SDK check attempt ${attempts}/${maxAttempts}`);
-
-      if (w.mappls && (w.mappls.vectorMap || w.mappls.Map)) {
-        console.log("Mappls SDK found, initializing map...");
-        initializeMap(defaultLat, defaultLng);
-        setMapLoading(false);
-      } else if (attempts < maxAttempts) {
-        console.log("SDK not ready, retrying...");
-        setTimeout(checkSDK, 200); // Increased delay
-      } else {
-        console.error("Mappls SDK failed to load after maximum attempts");
-        console.log("Final window.mappls:", w.mappls);
-        setError("Map service unavailable. Please enter coordinates manually.");
-        setMapLoading(false);
-      }
-    };
-    checkSDK();
+  const handleLocationSelect = (lat: number, lng: number) => {
+    setLatitude(lat);
+    setLongitude(lng);
+    setLocation(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -499,69 +357,16 @@ export default function ReportIssuePage() {
                     <div className="border rounded-lg overflow-hidden">
                       <div className="p-3 bg-muted/50 border-b">
                         <p className="text-sm text-muted-foreground">
-                          {error
-                            ? "Map unavailable - Enter coordinates manually"
-                            : "Click anywhere on the map to set the issue location"}
+                          Click anywhere on the map to set the issue location
                         </p>
                       </div>
                       <div className="relative">
-                        {mapLoading && (
-                          <div className="absolute inset-0 bg-background/80 flex items-center justify-center z-10">
-                            <div className="text-center">
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-                              <p className="text-sm text-muted-foreground">
-                                Loading map...
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                        {error ? (
-                          <div className="p-4 space-y-3">
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-sm font-medium">
-                                  Latitude
-                                </label>
-                                <Input
-                                  type="number"
-                                  step="any"
-                                  placeholder="28.6139"
-                                  value={latitude || ""}
-                                  onChange={(e) =>
-                                    setLatitude(
-                                      parseFloat(e.target.value) || null
-                                    )
-                                  }
-                                />
-                              </div>
-                              <div>
-                                <label className="text-sm font-medium">
-                                  Longitude
-                                </label>
-                                <Input
-                                  type="number"
-                                  step="any"
-                                  placeholder="77.209"
-                                  value={longitude || ""}
-                                  onChange={(e) =>
-                                    setLongitude(
-                                      parseFloat(e.target.value) || null
-                                    )
-                                  }
-                                />
-                              </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              Enter coordinates manually (e.g., Delhi: 28.6139,
-                              77.209)
-                            </p>
-                          </div>
-                        ) : (
-                          <div
-                            id="report-map-container"
-                            className="w-full h-64"
-                          />
-                        )}
+                        <LeafletMap
+                          latitude={latitude || 28.6139}
+                          longitude={longitude || 77.209}
+                          onLocationSelect={handleLocationSelect}
+                          height="256px"
+                        />
                       </div>
                     </div>
                   )}

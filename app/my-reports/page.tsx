@@ -21,6 +21,7 @@ import {
   MessageSquare,
   Calendar,
 } from "lucide-react";
+import { ReportDetailModal } from "@/components/report-detail-modal";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
 
@@ -33,6 +34,9 @@ type Report = {
   priority: string;
   status: "PENDING" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "REJECTED";
   address: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  imageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -75,6 +79,8 @@ export default function MyReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -101,6 +107,9 @@ export default function MyReportsPage() {
   }, [router]);
 
   const filteredReports = reports.filter((report) => {
+    // Hide resolved reports from citizen view
+    if (report.status === "RESOLVED") return false;
+    
     const matchesSearch =
       report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (report.address || "").toLowerCase().includes(searchTerm.toLowerCase());
@@ -112,6 +121,17 @@ export default function MyReportsPage() {
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
+
+  const handleViewDetails = (report: Report) => {
+    setSelectedReport(report);
+    setShowDetailModal(true);
+  };
+
+  const handleTrackOnMap = (report: Report) => {
+    // Store the report ID in localStorage for the map page to filter by
+    localStorage.setItem('trackReportId', report.id);
+    router.push('/map');
+  };
 
   if (loading)
     return (
@@ -169,7 +189,6 @@ export default function MyReportsPage() {
                     <SelectItem value="PENDING">Pending</SelectItem>
                     <SelectItem value="ASSIGNED">Assigned</SelectItem>
                     <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                    <SelectItem value="RESOLVED">Resolved</SelectItem>
                     <SelectItem value="REJECTED">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
@@ -263,11 +282,19 @@ export default function MyReportsPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleTrackOnMap(report)}
+                        disabled={!report.latitude || !report.longitude}
+                      >
                         <MapPin className="h-4 w-4 mr-1" />
                         Track on Map
                       </Button>
-                      <Button size="sm">
+                      <Button 
+                        size="sm"
+                        onClick={() => handleViewDetails(report)}
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View Details
                       </Button>
@@ -291,14 +318,6 @@ export default function MyReportsPage() {
           </Card>
           <Card>
             <CardContent className="text-center py-6">
-              <div className="text-2xl font-bold text-green-600">
-                {reports.filter((r) => r.status === "RESOLVED").length}
-              </div>
-              <div className="text-sm text-muted-foreground">Resolved</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="text-center py-6">
               <div className="text-2xl font-bold text-blue-600">
                 {reports.filter((r) => r.status === "IN_PROGRESS").length}
               </div>
@@ -314,6 +333,17 @@ export default function MyReportsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Report Detail Modal */}
+        <ReportDetailModal
+          report={selectedReport}
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedReport(null);
+          }}
+          onTrackOnMap={handleTrackOnMap}
+        />
       </div>
     </div>
   );

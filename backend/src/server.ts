@@ -6,6 +6,7 @@ import { authMiddleware } from "./middleware/auth";
 import { PrismaClient } from "@prisma/client";
 import { reportsRouter } from "./routes/reports";
 import { uploadsRouter } from "./routes/uploads";
+import helpersRouter from "./routes/helpers";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -18,6 +19,7 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/auth", authRouter);
 app.use("/uploads", uploadsRouter);
 app.use("/reports", reportsRouter);
+app.use("/helpers", helpersRouter);
 
 // Example protected route
 app.get("/profile", authMiddleware, async (req, res) => {

@@ -13,8 +13,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Users, Heart } from "lucide-react";
 import Link from "next/link";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
@@ -22,6 +23,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [userType, setUserType] = useState<"citizen" | "ngo">("citizen");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,6 +31,8 @@ export default function SignupPage() {
     password: "",
     confirmPassword: "",
     address: "",
+    organization: "", // For NGO
+    serviceArea: "", // For NGO
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,17 +54,31 @@ export default function SignupPage() {
       return;
     }
 
+    // Validate NGO-specific fields
+    if (userType === "ngo" && (!formData.organization || !formData.serviceArea)) {
+      setError("Organization and Service Area are required for NGO registration");
+      setLoading(false);
+      return;
+    }
+
     try {
+      const requestBody = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        address: formData.address,
+        role: userType === "ngo" ? "NGO" : "CITIZEN",
+        ...(userType === "ngo" && {
+          organization: formData.organization,
+          serviceArea: formData.serviceArea,
+        }),
+      };
+
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          phone: formData.phone,
-          address: formData.address,
-        }),
+        body: JSON.stringify(requestBody),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -75,11 +93,14 @@ export default function SignupPage() {
           id: user.id,
           email: user.email,
           name: user.name,
-          type: user.role === "ADMIN" ? "admin" : "citizen",
+          type: user.role === "ADMIN" ? "admin" : user.role === "NGO" ? "ngo" : "citizen",
           role: user.role,
         })
       );
-      window.location.href = "/";
+      
+      // Redirect based on user type
+      const redirectUrl = user.role === "NGO" ? "/ngo/dashboard" : "/citizen/dashboard";
+      window.location.href = redirectUrl;
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -100,26 +121,41 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+          <Tabs
+            value={userType}
+            onValueChange={(value) => setUserType(value as "citizen" | "ngo")}
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="citizen" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Citizen
+              </TabsTrigger>
+              <TabsTrigger value="ngo" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                NGO/Volunteer
+              </TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                required
-              />
-            </div>
+            <form onSubmit={handleSignup} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  required
+                />
+              </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -162,6 +198,41 @@ export default function SignupPage() {
                 required
               />
             </div>
+
+            {userType === "ngo" && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="organization">Organization Name</Label>
+                  <Input
+                    id="organization"
+                    type="text"
+                    placeholder="Enter your organization name"
+                    value={formData.organization}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, organization: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="serviceArea">Service Area</Label>
+                  <Input
+                    id="serviceArea"
+                    type="text"
+                    placeholder="e.g., Mumbai, Delhi, Bangalore"
+                    value={formData.serviceArea}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, serviceArea: e.target.value }))
+                    }
+                    required
+                  />
+                  <p className="text-xs text-gray-500">
+                    Specify the geographical area where your organization operates
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -227,19 +298,20 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating Account..." : "Create Account"}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Creating Account..." : "Create Account"}
+              </Button>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link href="/login" className="text-emerald-600 hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Already have an account?{" "}
+                  <Link href="/login" className="text-emerald-600 hover:underline">
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
