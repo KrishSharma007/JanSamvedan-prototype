@@ -47,19 +47,19 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50">
+    <nav className="bg-white/95 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Project Name */}
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="bg-primary rounded-lg p-2">
-              <MapPin className="h-6 w-6 text-primary-foreground" />
+          <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg p-2 shadow-sm">
+              <MapPin className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
-                CivicConnect
+              <h1 className="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                JanSamvedan
               </h1>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-500">
                 Smart India Hackathon
               </p>
             </div>
@@ -96,19 +96,19 @@ export function Navbar() {
               <div className="flex items-center space-x-4">
                 <Link
                   href="/report"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   Report Issue
                 </Link>
                 <Link
                   href="/my-reports"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   My Reports
                 </Link>
                 <Link
                   href="/map"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   City Map
                 </Link>
@@ -119,13 +119,13 @@ export function Navbar() {
               <div className="flex items-center space-x-4">
                 <Link
                   href="/ngo/dashboard"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/map"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   City Map
                 </Link>
@@ -136,25 +136,25 @@ export function Navbar() {
               <div className="flex items-center space-x-4">
                 <Link
                   href="/admin"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/admin/reports"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   Reports
                 </Link>
                 <Link
                   href="/admin/map"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   Map View
                 </Link>
                 <Link
                   href="/admin/analytics"
-                  className="text-sm font-medium text-foreground hover:text-primary"
+                  className="text-sm font-medium text-slate-700 hover:text-green-600 transition-colors px-3 py-2 rounded-md hover:bg-green-50"
                 >
                   Analytics
                 </Link>
@@ -177,28 +177,25 @@ export function Navbar() {
 
             {user ? (
               <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/signout">Sign out</Link>
-                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="flex items-center space-x-2"
+                      className="flex items-center space-x-2 hover:bg-slate-100"
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm">
                           {user.name
                             ?.split(" ")
                             .map((n: string) => n[0])
                             .join("") || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm font-medium">{user.name}</span>
+                      <span className="text-sm font-medium text-slate-700">{user.name}</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="flex items-center">
                         <User className="h-4 w-4 mr-2" />
@@ -207,7 +204,7 @@ export function Navbar() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/signout" className="flex items-center">
+                      <Link href="/signout" className="flex items-center text-red-600">
                         <LogOut className="h-4 w-4 mr-2" />
                         Logout
                       </Link>
@@ -217,10 +214,10 @@ export function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="text-slate-700 hover:text-green-600">
                   <Link href="/login">Login</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" asChild className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
                   <Link href="/signup">Register</Link>
                 </Button>
               </div>
@@ -245,25 +242,42 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
+          <div className="md:hidden py-4 border-t border-slate-200 bg-white/95 backdrop-blur-sm">
             <div className="space-y-4">
               {user && roleName === "CITIZEN" && (
                 <div className="space-y-2">
                   <Link
                     href="/report"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     Report Issue
                   </Link>
                   <Link
                     href="/my-reports"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     My Reports
                   </Link>
                   <Link
                     href="/map"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
+                  >
+                    City Map
+                  </Link>
+                </div>
+              )}
+
+              {user && roleName === "NGO" && (
+                <div className="space-y-2">
+                  <Link
+                    href="/ngo/dashboard"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/map"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     City Map
                   </Link>
@@ -274,25 +288,25 @@ export function Navbar() {
                 <div className="space-y-2">
                   <Link
                     href="/admin"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     Dashboard
                   </Link>
                   <Link
                     href="/admin/reports"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     Reports
                   </Link>
                   <Link
                     href="/admin/map"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     Map View
                   </Link>
                   <Link
                     href="/admin/analytics"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     Analytics
                   </Link>
@@ -317,13 +331,13 @@ export function Navbar() {
                 <div className="space-y-2">
                   <Link
                     href="/profile"
-                    className="block text-sm font-medium text-foreground hover:text-primary"
+                    className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
                   >
                     Profile
                   </Link>
                   <Button
                     variant="outline"
-                    className="w-full bg-transparent"
+                    className="w-full bg-transparent border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                     asChild
                   >
                     <Link href="/signout">Logout</Link>
@@ -331,10 +345,10 @@ export function Navbar() {
                 </div>
               ) : (
                 <div className="flex space-x-2">
-                  <Button variant="ghost" className="flex-1" asChild>
+                  <Button variant="ghost" className="flex-1 text-slate-700 hover:text-green-600" asChild>
                     <Link href="/login">Login</Link>
                   </Button>
-                  <Button className="flex-1" asChild>
+                  <Button className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" asChild>
                     <Link href="/signup">Register</Link>
                   </Button>
                 </div>

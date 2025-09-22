@@ -11,7 +11,7 @@ const users = [
     email: 'rajesh.kumar@email.com',
     password: 'password123',
     phone: '+91-9876543210',
-    address: '123 MG Road, Bangalore',
+    address: '123 Rohini Sector 8, Delhi',
     role: UserRole.CITIZEN,
   },
   {
@@ -19,7 +19,7 @@ const users = [
     email: 'priya.sharma@email.com',
     password: 'password123',
     phone: '+91-9876543211',
-    address: '456 Brigade Road, Bangalore',
+    address: '456 Dwarka Sector 10, Delhi',
     role: UserRole.CITIZEN,
   },
   {
@@ -27,7 +27,7 @@ const users = [
     email: 'amit.patel@email.com',
     password: 'password123',
     phone: '+91-9876543212',
-    address: '789 Koramangala, Bangalore',
+    address: '789 Gurgaon Sector 44, Haryana',
     role: UserRole.CITIZEN,
   },
   {
@@ -35,7 +35,7 @@ const users = [
     email: 'sneha.reddy@email.com',
     password: 'password123',
     phone: '+91-9876543213',
-    address: '321 Indiranagar, Bangalore',
+    address: '321 Noida Sector 62, UP',
     role: UserRole.CITIZEN,
   },
   {
@@ -43,7 +43,7 @@ const users = [
     email: 'vikram.singh@email.com',
     password: 'password123',
     phone: '+91-9876543214',
-    address: '654 Whitefield, Bangalore',
+    address: '654 Faridabad Sector 16, Haryana',
     role: UserRole.CITIZEN,
   },
   {
@@ -51,7 +51,7 @@ const users = [
     email: 'anita.desai@email.com',
     password: 'password123',
     phone: '+91-9876543215',
-    address: '987 Electronic City, Bangalore',
+    address: '987 Bahadurgarh City, Haryana',
     role: UserRole.CITIZEN,
   },
   {
@@ -59,7 +59,7 @@ const users = [
     email: 'ravi.nair@email.com',
     password: 'password123',
     phone: '+91-9876543216',
-    address: '147 HSR Layout, Bangalore',
+    address: '147 Rohini Sector 15, Delhi',
     role: UserRole.CITIZEN,
   },
   {
@@ -67,7 +67,7 @@ const users = [
     email: 'kavya.iyer@email.com',
     password: 'password123',
     phone: '+91-9876543217',
-    address: '258 Marathahalli, Bangalore',
+    address: '258 Dwarka Sector 21, Delhi',
     role: UserRole.CITIZEN,
   },
   {
@@ -75,7 +75,7 @@ const users = [
     email: 'suresh.gupta@email.com',
     password: 'password123',
     phone: '+91-9876543218',
-    address: '369 Banashankari, Bangalore',
+    address: '369 Gurgaon Cyber City, Haryana',
     role: UserRole.CITIZEN,
   },
   {
@@ -83,7 +83,7 @@ const users = [
     email: 'meera.joshi@email.com',
     password: 'password123',
     phone: '+91-9876543219',
-    address: '741 Jayanagar, Bangalore',
+    address: '741 Noida Sector 137, UP',
     role: UserRole.CITIZEN,
   },
 
@@ -93,50 +93,50 @@ const users = [
     email: 'contact@greenearth.org',
     password: 'password123',
     phone: '+91-9876543301',
-    address: '456 Environmental Street, Bangalore',
+    address: '456 Environmental Street, Gurgaon',
     role: UserRole.NGO,
     organization: 'Green Earth Foundation',
-    serviceArea: 'South Bangalore',
+    serviceArea: 'Gurgaon & Faridabad',
   },
   {
     name: 'Urban Development Trust',
     email: 'info@urbantrust.org',
     password: 'password123',
     phone: '+91-9876543302',
-    address: '789 Civic Center, Bangalore',
+    address: '789 Civic Center, Delhi',
     role: UserRole.NGO,
     organization: 'Urban Development Trust',
-    serviceArea: 'Central Bangalore',
+    serviceArea: 'Delhi NCR',
   },
   {
     name: 'Community Care Initiative',
     email: 'help@communitycare.org',
     password: 'password123',
     phone: '+91-9876543303',
-    address: '321 Social Welfare Road, Bangalore',
+    address: '321 Social Welfare Road, Noida',
     role: UserRole.NGO,
     organization: 'Community Care Initiative',
-    serviceArea: 'North Bangalore',
+    serviceArea: 'Noida & Greater Noida',
   },
   {
     name: 'Public Service Alliance',
     email: 'support@psa.org',
     password: 'password123',
     phone: '+91-9876543304',
-    address: '654 Service Lane, Bangalore',
+    address: '654 Service Lane, Dwarka',
     role: UserRole.NGO,
     organization: 'Public Service Alliance',
-    serviceArea: 'East Bangalore',
+    serviceArea: 'Dwarka & Rohini',
   },
   {
     name: 'Civic Action Group',
     email: 'action@civicgroup.org',
     password: 'password123',
     phone: '+91-9876543305',
-    address: '987 Action Street, Bangalore',
+    address: '987 Action Street, Bahadurgarh',
     role: UserRole.NGO,
     organization: 'Civic Action Group',
-    serviceArea: 'West Bangalore',
+    serviceArea: 'Bahadurgarh & Faridabad',
   },
 
   // Admins
@@ -145,7 +145,7 @@ const users = [
     email: 'admin@citycouncil.gov',
     password: 'admin123',
     phone: '+91-9876543401',
-    address: 'City Council Office, Bangalore',
+    address: 'Delhi Municipal Corporation, Delhi',
     role: UserRole.ADMIN,
     department: 'Public Works',
   },
@@ -154,7 +154,7 @@ const users = [
     email: 'john.smith@citycouncil.gov',
     password: 'admin123',
     phone: '+91-9876543402',
-    address: 'Municipal Office, Bangalore',
+    address: 'Gurgaon Municipal Office, Haryana',
     role: UserRole.ADMIN,
     department: 'Sanitation',
   },
@@ -163,7 +163,7 @@ const users = [
     email: 'sarah.johnson@citycouncil.gov',
     password: 'admin123',
     phone: '+91-9876543403',
-    address: 'City Hall, Bangalore',
+    address: 'Noida Authority Office, UP',
     role: UserRole.ADMIN,
     department: 'Roads & Transport',
   },
@@ -198,21 +198,45 @@ const statuses = [
 ];
 
 const locations = [
+  // Delhi NCR Areas
+  { name: 'Rohini Sector 1', lat: 28.7404, lng: 77.1200 },
+  { name: 'Rohini Sector 8', lat: 28.7450, lng: 77.1250 },
+  { name: 'Rohini Sector 15', lat: 28.7500, lng: 77.1300 },
+  { name: 'Rohini Sector 18', lat: 28.7550, lng: 77.1350 },
+  { name: 'Rohini Sector 24', lat: 28.7600, lng: 77.1400 },
+  
+  { name: 'Dwarka Sector 1', lat: 28.5700, lng: 77.0300 },
+  { name: 'Dwarka Sector 6', lat: 28.5750, lng: 77.0350 },
+  { name: 'Dwarka Sector 10', lat: 28.5800, lng: 77.0400 },
+  { name: 'Dwarka Sector 12', lat: 28.5850, lng: 77.0450 },
+  { name: 'Dwarka Sector 21', lat: 28.5900, lng: 77.0500 },
+  
+  { name: 'Gurgaon Sector 14', lat: 28.4500, lng: 77.0200 },
+  { name: 'Gurgaon Sector 29', lat: 28.4550, lng: 77.0250 },
+  { name: 'Gurgaon Sector 44', lat: 28.4600, lng: 77.0300 },
+  { name: 'Gurgaon Sector 56', lat: 28.4650, lng: 77.0350 },
+  { name: 'Gurgaon Cyber City', lat: 28.4700, lng: 77.0400 },
+  
+  { name: 'Bahadurgarh City', lat: 28.6800, lng: 76.9200 },
+  { name: 'Bahadurgarh Industrial Area', lat: 28.6850, lng: 76.9250 },
+  { name: 'Bahadurgarh Sector 1', lat: 28.6900, lng: 76.9300 },
+  
+  { name: 'Faridabad Sector 15', lat: 28.3800, lng: 77.3000 },
+  { name: 'Faridabad Sector 16', lat: 28.3850, lng: 77.3050 },
+  { name: 'Faridabad Sector 21', lat: 28.3900, lng: 77.3100 },
+  { name: 'Faridabad Industrial Area', lat: 28.3950, lng: 77.3150 },
+  
+  { name: 'Noida Sector 18', lat: 28.6200, lng: 77.3700 },
+  { name: 'Noida Sector 62', lat: 28.6250, lng: 77.3750 },
+  { name: 'Noida Sector 63', lat: 28.6300, lng: 77.3800 },
+  { name: 'Noida Sector 137', lat: 28.6350, lng: 77.3850 },
+  { name: 'Noida Greater Noida', lat: 28.6400, lng: 77.3900 },
+  
+  // Original Bangalore areas (keeping some for variety)
   { name: 'MG Road', lat: 12.9716, lng: 77.5946 },
-  { name: 'Brigade Road', lat: 12.9719, lng: 77.6062 },
   { name: 'Koramangala', lat: 12.9279, lng: 77.6271 },
-  { name: 'Indiranagar', lat: 12.9714, lng: 77.6412 },
   { name: 'Whitefield', lat: 12.9698, lng: 77.7500 },
   { name: 'Electronic City', lat: 12.8456, lng: 77.6603 },
-  { name: 'HSR Layout', lat: 12.9115, lng: 77.6460 },
-  { name: 'Marathahalli', lat: 12.9612, lng: 77.6972 },
-  { name: 'Banashankari', lat: 12.9245, lng: 77.5615 },
-  { name: 'Jayanagar', lat: 12.9245, lng: 77.5833 },
-  { name: 'Malleshwaram', lat: 13.0067, lng: 77.5611 },
-  { name: 'Basavanagudi', lat: 12.9434, lng: 77.5738 },
-  { name: 'Rajajinagar', lat: 12.9915, lng: 77.5511 },
-  { name: 'Vijayanagar', lat: 12.9815, lng: 77.5511 },
-  { name: 'Chamrajpet', lat: 12.9615, lng: 77.5711 },
 ];
 
 function generateComplaintId(): string {
@@ -222,6 +246,28 @@ function generateComplaintId(): string {
   const d = String(now.getDate()).padStart(2, '0');
   const t = String(now.getTime()).slice(-6);
   return `CR${y}${m}${d}${t}`;
+}
+
+function generateRealisticAddress(location: { name: string; lat: number; lng: number }): string {
+  const streetNumbers = ['123', '45', '78', '156', '89', '234', '67', '189', '345', '12'];
+  const streetNames = ['Main Road', 'Park Street', 'Garden Avenue', 'Market Lane', 'Station Road', 'School Street', 'Hospital Road', 'Temple Street', 'Residential Area', 'Commercial Complex'];
+  const houseTypes = ['House', 'Apartment', 'Building', 'Complex', 'Colony'];
+  
+  const streetNumber = getRandomElement(streetNumbers);
+  const streetName = getRandomElement(streetNames);
+  const houseType = getRandomElement(houseTypes);
+  
+  // Determine city based on location
+  let city = 'Delhi';
+  if (location.name.includes('Gurgaon')) city = 'Gurgaon, Haryana';
+  else if (location.name.includes('Noida')) city = 'Noida, Uttar Pradesh';
+  else if (location.name.includes('Faridabad')) city = 'Faridabad, Haryana';
+  else if (location.name.includes('Bahadurgarh')) city = 'Bahadurgarh, Haryana';
+  else if (location.name.includes('Bangalore') || location.name.includes('MG Road') || location.name.includes('Koramangala') || location.name.includes('Whitefield') || location.name.includes('Electronic City')) {
+    city = 'Bangalore, Karnataka';
+  }
+  
+  return `${streetNumber}, ${streetName}, ${location.name}, ${city}`;
 }
 
 function getRandomElement<T>(array: T[]): T {
@@ -288,7 +334,7 @@ async function main() {
         status,
         latitude: location.lat + (Math.random() - 0.5) * 0.01, // Add some randomness
         longitude: location.lng + (Math.random() - 0.5) * 0.01,
-        address: `${Math.floor(Math.random() * 999) + 1} ${location.name}, Bangalore`,
+        address: generateRealisticAddress(location),
         imageUrl: Math.random() > 0.7 ? `https://picsum.photos/400/300?random=${i}` : null,
         reportedById: citizen.id,
         assignedDept: getRandomElement(['Public Works', 'Sanitation', 'Roads & Transport', 'Water Board', 'Electricity Board']),

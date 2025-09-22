@@ -14,8 +14,8 @@ uploadsRouter.post("/image", async (req, res) => {
     const { dataUrl, folder, category } = req.body || {};
     if (!dataUrl) return res.status(400).json({ error: "dataUrl is required" });
 
-    // Build organized folder path: civicconnect/reports/YYYY/MM/<category>
-    const baseFolder = (folder as string) || "civicconnect/reports";
+    // Build organized folder path: jansamvedan/reports/YYYY/MM/<category>
+    const baseFolder = (folder as string) || "jansamvedan/reports";
     const now = new Date();
     const year = String(now.getFullYear());
     const month = String(now.getMonth() + 1).padStart(2, "0");

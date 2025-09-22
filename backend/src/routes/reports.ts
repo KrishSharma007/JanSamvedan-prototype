@@ -42,6 +42,11 @@ reportsRouter.post(
       if (!title || !description || !category || !priority) {
         return res.status(400).json({ error: "Missing required fields" });
       }
+      
+      // Validate that address is provided when coordinates are provided
+      if ((latitude !== null && longitude !== null) && (!address || address.trim() === "")) {
+        return res.status(400).json({ error: "Address is required when coordinates are provided" });
+      }
       const complaintId = generateComplaintId();
       const report = await prisma.complaint.create({
         data: {

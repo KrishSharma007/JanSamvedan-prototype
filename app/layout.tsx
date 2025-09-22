@@ -12,7 +12,7 @@ import "./globals.css";
 // MapPL integration removed - using Leaflet instead
 
 export const metadata: Metadata = {
-  title: "CivicConnect - Smart Civic Issue Reporting",
+  title: "JanSamvedan - Smart Civic Issue Reporting",
   description:
     "Report, Track & Resolve Civic Issues Together - Smart India Hackathon Project",
   generator: "v0.app",
