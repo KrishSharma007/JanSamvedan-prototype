@@ -17,7 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);

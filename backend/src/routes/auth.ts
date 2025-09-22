@@ -58,13 +58,8 @@ authRouter.post("/login", async (req, res) => {
     });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    // For ADMIN users, compare the password as plaintext to allow
-    // direct admin creation in the database without hashing.
-    // For all other users, fall back to bcrypt comparison.
-    const isAdmin = user.role === UserRole.ADMIN;
-    const valid = isAdmin
-      ? password === user.passwordHash
-      : await bcrypt.compare(password, user.passwordHash);
+    // For all users, use bcrypt comparison since passwords are hashed
+    const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
     const token = signJwt({ sub: user.id, role: user.role });
@@ -126,6 +121,67 @@ authRouter.get("/users", authMiddleware, async (req: any, res) => {
     });
 
     return res.json(users);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Update user profile
+authRouter.put("/profile", authMiddleware, async (req: any, res) => {
+  try {
+    const userId = req.user.sub;
+    const { name, email, phone, address, organization, serviceArea } = req.body || {};
+    
+    // Check if email is being changed and if it's already in use
+    if (email) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email },
+      });
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(409).json({ error: "Email already in use" });
+      }
+    }
+
+    // Get current user to check role
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Prepare update data
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (address !== undefined) updateData.address = address;
+    
+    // Only allow organization and serviceArea updates for NGO users
+    if (currentUser.role === UserRole.NGO) {
+      if (organization !== undefined) updateData.organization = organization;
+      if (serviceArea !== undefined) updateData.serviceArea = serviceArea;
+    }
+
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        address: true,
+        role: true,
+        organization: true,
+        serviceArea: true,
+      },
+    });
+
+    return res.json(updatedUser);
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: "Internal server error" });

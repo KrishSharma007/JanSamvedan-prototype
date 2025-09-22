@@ -16,9 +16,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Settings, Award, Camera } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
+
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -41,12 +45,46 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const handleSave = () => {
-    // Update user data
-    const updatedUser = { ...user, ...formData };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-    setUser(updatedUser);
-    setEditing(false);
+  const handleSave = async () => {
+    setLoading(true);
+    setError("");
+    
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(`${API_BASE}/auth/profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to update profile");
+      }
+
+      const updatedUserData = await response.json();
+      
+      // Update localStorage with the new data
+      const updatedUser = { 
+        ...user, 
+        ...updatedUserData,
+        type: updatedUserData.role === "ADMIN" ? "admin" : updatedUserData.role === "NGO" ? "ngo" : "citizen"
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setEditing(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!user) {
@@ -101,15 +139,20 @@ export default function ProfilePage() {
                 <CardDescription>Update your personal details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                    {error}
+                  </div>
+                )}
                 <div className="flex items-center gap-6">
                   <div className="relative">
                     <Avatar className="h-20 w-20">
-                      <AvatarImage src="/placeholder.svg?height=80&width=80" />
-                      <AvatarFallback className="text-lg">
+                      <AvatarFallback className="text-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold">
                         {user.name
                           ?.split(" ")
-                          .map((n: string) => n[0])
-                          .join("") || "U"}
+                          .map((n: string) => n[0]?.toUpperCase())
+                          .join("")
+                          .slice(0, 2) || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <Button
@@ -195,10 +238,23 @@ export default function ProfilePage() {
                 <div className="flex gap-2">
                   {editing ? (
                     <>
-                      <Button onClick={handleSave}>Save Changes</Button>
+                      <Button onClick={handleSave} disabled={loading}>
+                        {loading ? "Saving..." : "Save Changes"}
+                      </Button>
                       <Button
                         variant="outline"
-                        onClick={() => setEditing(false)}
+                        onClick={() => {
+                          setEditing(false);
+                          setError("");
+                          // Reset form data to original user data
+                          setFormData({
+                            name: user.name || "",
+                            email: user.email || "",
+                            phone: user.phone || "",
+                            address: user.address || "",
+                          });
+                        }}
+                        disabled={loading}
                       >
                         Cancel
                       </Button>

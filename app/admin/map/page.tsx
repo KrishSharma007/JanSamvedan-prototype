@@ -22,9 +22,15 @@ import {
   AlertTriangle,
   Clock,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LeafletMapWithMarkers } from "@/components/leaflet-map-with-markers";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 type ApiReport = {
   id: string;
   title: string;
@@ -51,6 +57,7 @@ export default function AdminMapPage() {
   const [reports, setReports] = useState<ApiReport[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<ApiReport | null>(null);
   const [trackReportId, setTrackReportId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -112,7 +119,7 @@ export default function AdminMapPage() {
       category: r.category,
       status: r.status,
       priority: r.priority,
-      address: r.address,
+      address: r.address || undefined,
       color: "#2563eb", // Admin map uses blue for all markers
       size: 16
     }));
@@ -121,6 +128,47 @@ export default function AdminMapPage() {
     const report = reports.find(r => r.id === marker.id);
     if (report) {
       setSelectedMarker(report);
+    }
+  };
+
+  const handleExportMapData = async (format: 'csv' | 'geojson') => {
+    try {
+      setExporting(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(`${API_BASE}/export/map/${format}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export map data");
+      }
+
+      // Get the filename from the response headers
+      const contentDisposition = response.headers.get('content-disposition');
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+        : `map_data_${new Date().toISOString().split('T')[0]}.${format}`;
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      setError(err.message || "Failed to export map data");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -332,10 +380,24 @@ export default function AdminMapPage() {
 
             {/* Actions */}
             <div className="space-y-2">
-              <Button className="w-full justify-start" size="sm">
-                <Download className="mr-2 h-4 w-4" />
-                Export Map Data
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="w-full justify-start" size="sm" disabled={exporting}>
+                    <Download className="mr-2 h-4 w-4" />
+                    {exporting ? "Exporting..." : "Export Map Data"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleExportMapData('csv')}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportMapData('geojson')}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as GeoJSON
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 variant="outline"
                 className="w-full justify-start bg-transparent"
@@ -370,7 +432,7 @@ export default function AdminMapPage() {
             focusOnMarker={trackReportId || undefined}
             autoFitBounds={!trackReportId && mapMarkers.length > 0}
             mapView={mapView}
-            onMapViewChange={setMapView}
+            onMapViewChange={(view) => setMapView(view as "normal" | "satellite" | "terrain" | "minimal")}
           />
         </div>
       </div>

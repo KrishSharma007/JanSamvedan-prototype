@@ -38,7 +38,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE as string;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000";
 type ApiReport = {
   id: string;
   complaintId: string;
@@ -102,6 +102,7 @@ export default function AdminReportsPage() {
   const [reports, setReports] = useState<ApiReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -181,6 +182,47 @@ export default function AdminReportsPage() {
     }
   };
 
+  const handleExportReports = async (format: 'csv' | 'json') => {
+    try {
+      setExporting(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      const response = await fetch(`${API_BASE}/export/reports/${format}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to export reports");
+      }
+
+      // Get the filename from the response headers
+      const contentDisposition = response.headers.get('content-disposition');
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+        : `reports_${new Date().toISOString().split('T')[0]}.${format}`;
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      setError(err.message || "Failed to export reports");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -194,10 +236,24 @@ export default function AdminReportsPage() {
                 Manage and assign civic issue reports
               </p>
             </div>
-            <Button>
-              <Download className="mr-2 h-4 w-4" />
-              Export Reports
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={exporting}>
+                  <Download className="mr-2 h-4 w-4" />
+                  {exporting ? "Exporting..." : "Export Reports"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleExportReports('csv')}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportReports('json')}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

@@ -12,13 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Globe,
   Menu,
   X,
@@ -177,40 +170,40 @@ export function Navbar() {
 
             {user ? (
               <div className="flex items-center space-x-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="flex items-center space-x-2 hover:bg-slate-100"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                        <AvatarFallback className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm">
-                          {user.name
-                            ?.split(" ")
-                            .map((n: string) => n[0])
-                            .join("") || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium text-slate-700">{user.name}</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" className="flex items-center">
-                        <User className="h-4 w-4 mr-2" />
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/signout" className="flex items-center text-red-600">
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center space-x-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-semibold">
+                      {user.name
+                        ?.split(" ")
+                        .map((n: string) => n[0]?.toUpperCase())
+                        .join("")
+                        .slice(0, 2) || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-slate-700">{user.name}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="text-slate-700 hover:text-red-600 hover:bg-red-50"
+                >
+                  <Link href="/profile" className="flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    Profile
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="text-slate-700 hover:text-red-600 hover:bg-red-50"
+                >
+                  <Link href="/signout" className="flex items-center">
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Logout
+                  </Link>
+                </Button>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
@@ -329,6 +322,18 @@ export function Navbar() {
 
               {user ? (
                 <div className="space-y-2">
+                  <div className="flex items-center space-x-2 px-3 py-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-semibold">
+                        {user.name
+                          ?.split(" ")
+                          .map((n: string) => n[0]?.toUpperCase())
+                          .join("")
+                          .slice(0, 2) || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium text-slate-700">{user.name}</span>
+                  </div>
                   <Link
                     href="/profile"
                     className="block text-sm font-medium text-slate-700 hover:text-green-600 px-3 py-2 rounded-md hover:bg-green-50 transition-colors"
@@ -340,7 +345,10 @@ export function Navbar() {
                     className="w-full bg-transparent border-slate-200 hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                     asChild
                   >
-                    <Link href="/signout">Logout</Link>
+                    <Link href="/signout" className="flex items-center justify-center">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Link>
                   </Button>
                 </div>
               ) : (
