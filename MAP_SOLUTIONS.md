@@ -1,4 +1,4 @@
-# Map Integration Solutions for CivicConnect
+# Map Integration Solutions for JanSamvedan
 
 ## ✅ **COMPLETE MIGRATION TO LEAFLET**
 

@@ -57,7 +57,7 @@ export function Navbar() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-foreground">
-                CivicConnect
+                JanSamvedan
               </h1>
               <p className="text-xs text-muted-foreground">
                 Smart India Hackathon

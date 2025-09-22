@@ -13,7 +13,7 @@ export function Footer() {
                 <MapPin className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h3 className="text-lg font-bold">CivicConnect</h3>
+                <h3 className="text-lg font-bold">JanSamvedan</h3>
                 <p className="text-sm text-secondary-foreground/80">Smart India Hackathon Project</p>
               </div>
             </div>
@@ -40,7 +40,7 @@ export function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-secondary-foreground/60" />
-                <span className="text-sm">support@civicconnect.gov.in</span>
+                <span className="text-sm">support@jansamvedan.gov.in</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-secondary-foreground/60" />
@@ -88,7 +88,7 @@ export function Footer() {
 
         <div className="border-t border-secondary-foreground/20 mt-8 pt-8 text-center">
           <p className="text-sm text-secondary-foreground/60">
-            © 2024 CivicConnect. Built for Smart India Hackathon. All rights reserved.
+            © 2024 JanSamvedan. Built for Smart India Hackathon. All rights reserved.
           </p>
         </div>
       </div>

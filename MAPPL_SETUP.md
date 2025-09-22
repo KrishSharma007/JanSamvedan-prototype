@@ -1,7 +1,7 @@
 # Map Integration Setup Guide
 
 ## Overview
-The CivicConnect application now uses **Leaflet + OpenStreetMap** for reliable, free map functionality. No API keys or complex setup required!
+The JanSamvedan application now uses **Leaflet + OpenStreetMap** for reliable, free map functionality. No API keys or complex setup required!
 
 ## ✅ **No Setup Required!**
 
