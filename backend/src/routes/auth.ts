@@ -22,7 +22,7 @@ authRouter.post("/register", async (req, res) => {
     // Determine user role
     const userRole = role === "NGO" ? UserRole.NGO : UserRole.CITIZEN;
     
-    // Create user with appropriate role
+    // Create user with appropriate role and role-specific fields
     const user = await prisma.user.create({
       data: {
         name,
@@ -31,23 +31,12 @@ authRouter.post("/register", async (req, res) => {
         phone,
         address,
         role: userRole,
+        // Role-specific fields
+        organization: userRole === UserRole.NGO ? organization : null,
+        serviceArea: userRole === UserRole.NGO ? serviceArea : null,
       },
       select: { id: true, name: true, email: true, role: true },
     });
-
-    // If NGO, also create NGO volunteer record
-    if (userRole === UserRole.NGO) {
-      await prisma.ngoVolunteer.create({
-        data: {
-          name,
-          email,
-          passwordHash,
-          phone,
-          organization: organization || "",
-          serviceArea: serviceArea || "",
-        },
-      });
-    }
 
     const token = signJwt({ sub: user.id, role: user.role });
     return res.status(201).json({ token, user });

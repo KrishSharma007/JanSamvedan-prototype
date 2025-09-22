@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middleware/auth";
 
@@ -6,11 +6,11 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Add or remove NGO helper for a complaint
-router.post("/:complaintId/help", authMiddleware, async (req, res) => {
+router.post("/:complaintId/help", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { complaintId } = req.params;
     const { action } = req.body; // "add" or "remove"
-    const userId = req.user?.sub;
+    const userId = (req as any).user?.sub;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -23,15 +23,6 @@ router.post("/:complaintId/help", authMiddleware, async (req, res) => {
 
     if (!user || user.role !== "NGO") {
       return res.status(403).json({ error: "Only NGO users can help with complaints" });
-    }
-
-    // Get the corresponding NgoVolunteer record
-    const ngoUser = await prisma.ngoVolunteer.findUnique({
-      where: { email: user.email }
-    });
-
-    if (!ngoUser) {
-      return res.status(404).json({ error: "NGO volunteer record not found" });
     }
 
     // Check if complaint exists
@@ -47,9 +38,9 @@ router.post("/:complaintId/help", authMiddleware, async (req, res) => {
       // Add helper (upsert to handle duplicates)
       const helper = await prisma.complaintHelper.upsert({
         where: {
-          complaintId_ngoId: {
+          complaintId_userId: {
             complaintId,
-            ngoId: userId
+            userId: userId
           }
         },
         update: {
@@ -58,7 +49,7 @@ router.post("/:complaintId/help", authMiddleware, async (req, res) => {
         },
         create: {
           complaintId,
-          ngoId: ngoUser.id,
+          userId: user.id,
           status: "HELPING"
         }
       });
@@ -73,7 +64,7 @@ router.post("/:complaintId/help", authMiddleware, async (req, res) => {
       await prisma.complaintHelper.deleteMany({
         where: {
           complaintId,
-          ngoId: ngoUser.id
+          userId: user.id
         }
       });
 
@@ -91,10 +82,10 @@ router.post("/:complaintId/help", authMiddleware, async (req, res) => {
 });
 
 // Get all helpers for a specific complaint (Admin only)
-router.get("/:complaintId", authMiddleware, async (req, res) => {
+router.get("/:complaintId", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { complaintId } = req.params;
-    const userId = req.user?.sub;
+    const userId = (req as any).user?.sub;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -113,7 +104,7 @@ router.get("/:complaintId", authMiddleware, async (req, res) => {
     const helpers = await prisma.complaintHelper.findMany({
       where: { complaintId },
       include: {
-        ngo: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -135,9 +126,9 @@ router.get("/:complaintId", authMiddleware, async (req, res) => {
 });
 
 // Get all complaints that an NGO is helping with
-router.get("/ngo/my-helping", authMiddleware, async (req, res) => {
+router.get("/ngo/my-helping", authMiddleware, async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.sub;
+    const userId = (req as any).user?.sub;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -152,18 +143,9 @@ router.get("/ngo/my-helping", authMiddleware, async (req, res) => {
       return res.status(403).json({ error: "Only NGO users can access this endpoint" });
     }
 
-    // Get the corresponding NgoVolunteer record
-    const ngoUser = await prisma.ngoVolunteer.findUnique({
-      where: { email: user.email }
-    });
-
-    if (!ngoUser) {
-      return res.status(404).json({ error: "NGO volunteer record not found" });
-    }
-
     // Get all complaints the NGO is helping with
     const helpingComplaints = await prisma.complaintHelper.findMany({
-      where: { ngoId: ngoUser.id },
+      where: { userId: user.id },
       include: {
         complaint: {
           select: {
@@ -193,11 +175,11 @@ router.get("/ngo/my-helping", authMiddleware, async (req, res) => {
 });
 
 // Update helper status (Admin only)
-router.patch("/:helperId/status", authMiddleware, async (req, res) => {
+router.patch("/:helperId/status", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { helperId } = req.params;
     const { status } = req.body; // "HELPING", "CONTACTED", "DECLINED"
-    const userId = req.user?.sub;
+    const userId = (req as any).user?.sub;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -220,7 +202,7 @@ router.patch("/:helperId/status", authMiddleware, async (req, res) => {
         updatedAt: new Date()
       },
       include: {
-        ngo: {
+        user: {
           select: {
             id: true,
             name: true,

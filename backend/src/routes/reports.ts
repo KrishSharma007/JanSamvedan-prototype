@@ -108,7 +108,7 @@ reportsRouter.get(
         include: {
           helpers: {
             include: {
-              ngo: {
+              user: {
                 select: {
                   id: true,
                   name: true,

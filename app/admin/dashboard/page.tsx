@@ -22,7 +22,7 @@ type Helper = {
   id: string;
   status: string;
   createdAt: string;
-  ngo: {
+  user: {
     id: string;
     name: string;
     email: string;
@@ -292,13 +292,13 @@ export default function AdminDashboard() {
                         {report.helpers.map((helper) => (
                           <div key={helper.id} className="flex items-center justify-between bg-white p-2 rounded border">
                             <div className="flex-1">
-                              <div className="font-medium text-sm">{helper.ngo.name}</div>
+                              <div className="font-medium text-sm">{helper.user.name}</div>
                               <div className="text-xs text-gray-600">
-                                {helper.ngo.organization && `${helper.ngo.organization} • `}
-                                {helper.ngo.serviceArea}
+                                {helper.user.organization && `${helper.user.organization} • `}
+                                {helper.user.serviceArea}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {helper.ngo.email} • {helper.ngo.phone || "No phone"}
+                                {helper.user.email} • {helper.user.phone || "No phone"}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => window.open(`mailto:${helper.ngo.email}`, '_blank')}
+                                onClick={() => window.open(`mailto:${helper.user.email}`, '_blank')}
                               >
                                 Contact
                               </Button>

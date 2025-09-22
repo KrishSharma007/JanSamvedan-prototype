@@ -34,7 +34,14 @@ enum ComplaintStatus {
   phone         String?
   address       String?
   role          UserRole    @default(CITIZEN)
+  
+  // Role-specific fields
+  department    String?     // For ADMIN users
+  organization  String?     // For NGO users
+  serviceArea   String?     // For NGO users
+  
   complaints    Complaint[]
+  helpingWith   ComplaintHelper[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
  }
@@ -63,46 +70,20 @@ enum ComplaintStatus {
   @@index([reportedById])
  }
 
-// Separate Admin table with potential admin-specific attributes
-model Admin {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  passwordHash  String
-  phone         String?
-  department    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// NGO / Volunteer accounts with service area to discover relevant complaints
-model NgoVolunteer {
-  id            String             @id @default(cuid())
-  name          String
-  organization  String?
-  email         String             @unique
-  passwordHash  String
-  phone         String?
-  serviceArea   String
-  helpingWith   ComplaintHelper[]
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-}
-
 // Track which NGOs/Volunteers are helping with which complaints
 model ComplaintHelper {
   id            String        @id @default(cuid())
   complaintId   String
-  ngoId         String
+  userId        String        // Reference to User table
   status        String        @default("HELPING") // HELPING, CONTACTED, DECLINED
   message       String?       // Optional message from NGO
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   
   complaint     Complaint     @relation(fields: [complaintId], references: [id], onDelete: Cascade)
-  ngo           NgoVolunteer  @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  @@unique([complaintId, ngoId]) // Prevent duplicate helpers
+  @@unique([complaintId, userId]) // Prevent duplicate helpers
   @@index([complaintId])
-  @@index([ngoId])
+  @@index([userId])
 }
